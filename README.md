@@ -8,8 +8,8 @@ and translating subtitles.
 ```bash
 $ chmod +x bin/download
 ```
-2) Create '.env' file and set the following environment
-variables in there:
+2) Init the following environment
+variables:
 - OS.useragent=[OpenSubtitlesApi useragent]
 - OS.username=[OpenSubtitlesApi username]
 - OS.password=[OpenSubtitlesApi password]
