@@ -1,0 +1,95 @@
+#!/usr/bin/env node
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _dotenv = require('dotenv');
+
+var _dotenv2 = _interopRequireDefault(_dotenv);
+
+var _commander = require('commander');
+
+var _commander2 = _interopRequireDefault(_commander);
+
+var _chalk = require('chalk');
+
+var _chalk2 = _interopRequireDefault(_chalk);
+
+var _fs = require('fs');
+
+var _fs2 = _interopRequireDefault(_fs);
+
+var _progress = require('progress');
+
+var _progress2 = _interopRequireDefault(_progress);
+
+var _subtitlesManager = require('./../lib/subtitles-manager');
+
+var _subtitlesManager2 = _interopRequireDefault(_subtitlesManager);
+
+var _languages = require('./../config/languages.json');
+
+var _languages2 = _interopRequireDefault(_languages);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+_dotenv2.default.load({ path: __dirname + '/../.env' });
+
+var search = function search(_search, lang) {
+    var langData = null;
+
+    if (lang) {
+        langData = _languages2.default.find(function (langItem) {
+            return langItem.alpha2 === lang || langItem.English === lang;
+        });
+        if (!langData) {
+            console.log(_chalk2.default.yellow('Unsupported language.'));
+            process.exit(1);
+        }
+        if (lang === langData.English) {
+            lang = langData.alpha2;
+        }
+    }
+    var subtitles = new _subtitlesManager2.default(_search, lang ? lang : '');
+
+    var bar = void 0;
+
+    subtitles.on('translate', function (length) {
+        bar = new _progress2.default('  translating [:bar] :percent :etas', {
+            complete: '=',
+            incomplete: ' ',
+            width: 20,
+            total: length
+        });
+    });
+
+    subtitles.on('translating', function (length) {
+        bar.tick(bar.total - bar.curr - length);
+    });
+
+    subtitles.search(_commander2.default.translate === true).then(function (data) {
+        if ('object' === (typeof data === 'undefined' ? 'undefined' : _typeof(data)) && data.hasOwnProperty('error')) {
+            console.log(_chalk2.default.yellow(data.error));
+            process.exit(2);
+        } else {
+            var fileName = void 0;
+            var i = 0;
+            do {
+                fileName = 'subs-' + subtitles.lang;
+                if (i > 0) fileName += '(' + i + ')';
+                fileName += '.srt';
+                i++;
+            } while (_fs2.default.existsSync(fileName));
+            _fs2.default.writeFileSync(fileName, data);
+            console.log(_chalk2.default.green('Downloaded: ' + fileName));
+            process.exit(0);
+        }
+    });
+};
+
+_commander2.default.version('0.0.1').arguments('<movie_title|imdbID> [lang]').option('-t, --translate', 'translate subtitles from original language').action(search);
+
+_commander2.default.parse(process.argv);
+if (_commander2.default.args.length === 0) {
+    _commander2.default.help();
+}

@@ -1,0 +1,73 @@
+#!/usr/bin/env node
+
+import dotenv from 'dotenv';
+dotenv.load({ path: __dirname + '/../.env' });
+
+import program from 'commander';
+import chalk from 'chalk';
+import fs from 'fs';
+import Progress from 'progress';
+import SubManager from './../lib/subtitles-manager';
+import languages from './../config/languages.json';
+
+const search = (search, lang) => {
+    let langData = null;
+
+    if (lang) {
+        langData = languages.find(langItem => {
+            return langItem.alpha2 === lang || langItem.English === lang;
+        });
+        if ( ! langData) {
+            console.log(chalk.yellow('Unsupported language.'));
+            process.exit(1);
+        }
+        if (lang === langData.English) {
+            lang = langData.alpha2;
+        }
+    }
+    const subtitles = new SubManager(search, lang ? lang : '');
+
+    let bar;
+
+    subtitles.on('translate', length => {
+        bar = new Progress('  translating [:bar] :percent :etas', {
+            complete: '=',
+            incomplete: ' ',
+            width: 20,
+            total: length
+        });
+    });
+
+    subtitles.on('translating', length => {
+        bar.tick(bar.total - bar.curr - length);
+    });
+
+    subtitles.search(program.translate === true).then(data => {
+        if ('object' === typeof data && data.hasOwnProperty('error')) {
+            console.log(chalk.yellow(data.error));
+            process.exit(2);
+        } else {
+            let fileName;
+            let i = 0;
+            do {
+                fileName = 'subs-' + subtitles.lang;
+                if (i > 0) fileName += '(' + i + ')';
+                fileName += '.srt';
+                i++;
+            } while (fs.existsSync(fileName));
+            fs.writeFileSync(fileName, data);
+            console.log(chalk.green('Downloaded: ' + fileName));
+            process.exit(0);
+        }
+    });
+};
+
+program.version('0.0.1')
+    .arguments('<movie_title|imdbID> [lang]')
+    .option('-t, --translate', 'translate subtitles from original language')
+    .action(search);
+
+program.parse(process.argv);
+if (program.args.length === 0) {
+    program.help();
+}
