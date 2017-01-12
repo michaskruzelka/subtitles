@@ -34,5 +34,5 @@ $ ./bin/download tt3346410 be -t
 ```
 
 ## License
-View the [LICENSE](https://github.com/michaskruzelka/orthographies/blob/master/LICENSE) file
+View the [LICENSE](https://github.com/michaskruzelka/subtitles/blob/master/LICENSE) file
 (MIT).
