@@ -3,7 +3,7 @@
 A tool written in node.js for downloading
 and translating subtitles.
 
-Prerequisites:
+## Prerequisites:
 1) Make ./bin/download script executable.
 ```bash
 $ chmod +x bin/download
