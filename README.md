@@ -3,11 +3,17 @@
 A tool written in node.js for downloading
 and translating subtitles.
 
-Make ./bin/download script executable.
-
+Prerequisites:
+1) Make ./bin/download script executable.
 ```bash
-$ chmod +x -R bin/download
+$ chmod +x bin/download
 ```
+2) Create '.env' file and set the following environment
+variables in there:
+- OS.useragent=[OpenSubtitlesApi useragent]
+- OS.username=[OpenSubtitlesApi username]
+- OS.password=[OpenSubtitlesApi password]
+- YT.token=[YandexTranslate token]
 
 ## Usage
 
